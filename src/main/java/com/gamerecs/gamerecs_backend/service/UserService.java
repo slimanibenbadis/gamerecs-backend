@@ -66,6 +66,17 @@ public class UserService implements UserDetailsService {
             throw new UserRegistrationException("Passwords do not match");
         }
 
+        // Validate email format
+        if (!isValidEmail(registrationDTO.getEmail())) {
+            throw new UserRegistrationException("Invalid email format");
+        }
+
+        // Validate password strength
+        if (!isValidPassword(registrationDTO.getPassword())) {
+            throw new UserRegistrationException(
+                    "Password must be at least 6 characters and contain both letters and numbers");
+        }
+
         // Check for existing username
         if (userRepository.existsByUsername(registrationDTO.getUsername())) {
             throw new UserRegistrationException("Username already exists");
@@ -89,6 +100,30 @@ public class UserService implements UserDetailsService {
 
         // Save and return the new user
         return userRepository.save(user);
+    }
+
+    /**
+     * Validates email format using a simple regex pattern.
+     * 
+     * @param email the email to validate
+     * @return true if the email format is valid, false otherwise
+     */
+    private boolean isValidEmail(String email) {
+        return email != null && email.matches("^[A-Za-z0-9+_.-]+@(.+)$");
+    }
+
+    /**
+     * Validates password strength requirements.
+     * Password must be at least 6 characters and contain both letters and numbers.
+     * 
+     * @param password the password to validate
+     * @return true if the password meets the requirements, false otherwise
+     */
+    private boolean isValidPassword(String password) {
+        return password != null &&
+                password.length() >= 6 &&
+                password.matches(".*[A-Za-z].*") && // Contains at least one letter
+                password.matches(".*\\d.*"); // Contains at least one number
     }
 
     public UserProfileDTO getUserProfile(String username) {
