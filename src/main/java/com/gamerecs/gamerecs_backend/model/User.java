@@ -23,37 +23,40 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "UserID")
     private Long userId;
 
     @NotBlank(message = "Username is required")
     @Pattern(regexp = "^[a-zA-Z0-9_-]{3,50}$", message = "Username must be between 3 and 50 characters and can only contain letters, numbers, underscores and hyphens")
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(name = "Username", nullable = false, unique = true, length = 50)
     private String username;
 
     @NotBlank(message = "Email is required")
     @Email(message = "Email should be valid")
-    @Column(nullable = false, unique = true, length = 255)
+    @Column(name = "Email", nullable = false, unique = true, length = 255)
     private String email;
 
     @NotBlank(message = "Password hash is required")
-    @Column(nullable = false, length = 255)
+    @Column(name = "PasswordHash", nullable = false, length = 255)
     private String passwordHash;
 
     @Size(max = 500, message = "Profile picture URL cannot exceed 500 characters")
-    @Column(length = 500)
+    @Column(name = "ProfilePictureURL", columnDefinition = "TEXT")
     private String profilePictureURL;
 
     @Size(max = 1000, message = "Bio cannot exceed 1000 characters")
-    @Column(length = 1000)
+    @Column(name = "Bio", columnDefinition = "TEXT")
     private String bio;
 
-    @Column(nullable = false)
+    @Column(name = "JoinDate", nullable = false)
     private Timestamp joinDate;
 
+    @Column(name = "LastLogin")
     private Timestamp lastLogin;
 
     // Default constructor
     public User() {
+        this.joinDate = new Timestamp(System.currentTimeMillis());
     }
 
     // Constructor with required fields
