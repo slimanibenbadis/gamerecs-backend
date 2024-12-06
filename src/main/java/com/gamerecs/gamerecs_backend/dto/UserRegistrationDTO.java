@@ -19,9 +19,12 @@ public class UserRegistrationDTO {
     private String email;
 
     @NotBlank(message = "Password is required")
-    @Size(min = 8, max = 100, message = "Password must be between 8 and 100 characters")
-    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$", message = "Password must contain at least one digit, one lowercase, one uppercase, one special character, and no whitespace")
+    @Size(min = 6, max = 100, message = "Password must be between 6 and 100 characters")
+    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-zA-Z]).*$", message = "Password must contain at least one letter and one number")
     private String password;
+
+    @NotBlank(message = "Confirm password is required")
+    private String confirmPassword;
 
     @Size(max = 500, message = "Profile picture URL cannot exceed 500 characters")
     private String profilePictureURL;
@@ -56,6 +59,14 @@ public class UserRegistrationDTO {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getConfirmPassword() {
+        return confirmPassword;
+    }
+
+    public void setConfirmPassword(String confirmPassword) {
+        this.confirmPassword = confirmPassword;
     }
 
     public String getProfilePictureURL() {
