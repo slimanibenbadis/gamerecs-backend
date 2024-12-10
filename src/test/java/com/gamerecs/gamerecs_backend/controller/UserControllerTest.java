@@ -92,7 +92,7 @@ public class UserControllerTest {
                 .thenReturn(createdUser);
 
         // Act & Assert
-        mockMvc.perform(post("/api/users/register")
+        mockMvc.perform(post("/users/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(validRegistrationDTO)))
                 .andExpect(status().isCreated())
@@ -107,7 +107,7 @@ public class UserControllerTest {
                 .thenThrow(new UserRegistrationException("Username already exists"));
 
         // Act & Assert
-        mockMvc.perform(post("/api/users/register")
+        mockMvc.perform(post("/users/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(validRegistrationDTO)))
                 .andExpect(status().isConflict())
@@ -121,7 +121,7 @@ public class UserControllerTest {
         validRegistrationDTO.setEmail("invalid-email"); // Invalid email format
 
         // Act & Assert
-        mockMvc.perform(post("/api/users/register")
+        mockMvc.perform(post("/users/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(validRegistrationDTO)))
                 .andExpect(status().isBadRequest());
@@ -141,7 +141,7 @@ public class UserControllerTest {
                 .thenReturn("dummy.jwt.token");
 
         // Act & Assert
-        mockMvc.perform(post("/api/users/login")
+        mockMvc.perform(post("/users/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(validLoginDTO)))
                 .andExpect(status().isOk())
@@ -159,7 +159,7 @@ public class UserControllerTest {
                         new org.springframework.security.authentication.BadCredentialsException("Invalid credentials"));
 
         // Act & Assert
-        mockMvc.perform(post("/api/users/login")
+        mockMvc.perform(post("/users/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(validLoginDTO)))
                 .andExpect(status().isUnauthorized());
@@ -172,7 +172,7 @@ public class UserControllerTest {
         LoginDTO emptyLoginDTO = new LoginDTO();
 
         // Act & Assert
-        mockMvc.perform(post("/api/users/login")
+        mockMvc.perform(post("/users/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(emptyLoginDTO)))
                 .andExpect(status().isBadRequest());
@@ -187,7 +187,7 @@ public class UserControllerTest {
         when(userService.getUserProfile("testuser")).thenReturn(validProfileDTO);
 
         // Act & Assert
-        mockMvc.perform(get("/api/users/profile"))
+        mockMvc.perform(get("/users/profile"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value(validProfileDTO.getUsername()))
                 .andExpect(jsonPath("$.email").value(validProfileDTO.getEmail()))
@@ -197,7 +197,7 @@ public class UserControllerTest {
     @Test
     @DisplayName("Should return 403 when accessing profile without authentication")
     void getCurrentUserProfile_WithoutAuth_ShouldReturn403() throws Exception {
-        mockMvc.perform(get("/api/users/profile"))
+        mockMvc.perform(get("/users/profile"))
                 .andExpect(status().isForbidden());
     }
 
@@ -210,7 +210,7 @@ public class UserControllerTest {
                 .thenThrow(new UsernameNotFoundException("User not found"));
 
         // Act & Assert
-        mockMvc.perform(get("/api/users/profile"))
+        mockMvc.perform(get("/users/profile"))
                 .andExpect(status().isNotFound());
     }
 }
