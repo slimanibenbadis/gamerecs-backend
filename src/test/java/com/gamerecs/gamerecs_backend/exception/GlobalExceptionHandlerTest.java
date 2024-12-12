@@ -26,14 +26,14 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handleUserRegistrationException() {
-        String errorMessage = "Username already exists";
+        String errorMessage = "The username is already taken. Please choose a different username.";
         UserRegistrationException exception = new UserRegistrationException(errorMessage);
 
         ResponseEntity<ErrorResponse> response = exceptionHandler.handleUserRegistrationException(exception);
 
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals("Unable to complete registration", response.getBody().getMessage());
+        assertEquals("The username is already taken. Please choose a different username.", response.getBody().getMessage());
         assertEquals("Registration Error", response.getBody().getError());
         assertEquals(409, response.getBody().getStatus());
     }

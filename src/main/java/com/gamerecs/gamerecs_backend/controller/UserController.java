@@ -5,6 +5,7 @@ import com.gamerecs.gamerecs_backend.dto.LoginDTO;
 import com.gamerecs.gamerecs_backend.dto.UserProfileDTO;
 import com.gamerecs.gamerecs_backend.dto.UserRegistrationDTO;
 import com.gamerecs.gamerecs_backend.exception.ErrorResponse;
+import com.gamerecs.gamerecs_backend.exception.UserRegistrationException;
 import com.gamerecs.gamerecs_backend.security.JwtService;
 import com.gamerecs.gamerecs_backend.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -55,14 +56,14 @@ public class UserController {
             ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
                 "Validation Error",
-                "Invalid registration data provided"
+                e.getMessage()
             );
             return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-        } catch (RuntimeException e) {
+        } catch (UserRegistrationException e) {
             ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.CONFLICT.value(),
                 "Registration Error",
-                "Unable to complete registration"
+                e.getMessage()
             );
             return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
         }

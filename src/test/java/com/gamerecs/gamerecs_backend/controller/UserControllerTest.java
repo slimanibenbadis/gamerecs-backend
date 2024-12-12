@@ -104,7 +104,7 @@ public class UserControllerTest {
     void registerUser_WithExistingUsername_ShouldReturn409() throws Exception {
         // Arrange
         when(userService.registerUser(any(UserRegistrationDTO.class)))
-                .thenThrow(new UserRegistrationException("Username already exists"));
+                .thenThrow(new UserRegistrationException("The username is already taken. Please choose a different username."));
 
         // Act & Assert
         mockMvc.perform(post("/users/register")
@@ -113,7 +113,7 @@ public class UserControllerTest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.status").value(409))
                 .andExpect(jsonPath("$.error").value("Registration Error"))
-                .andExpect(jsonPath("$.message").value("Unable to complete registration"))
+                .andExpect(jsonPath("$.message").value("The username is already taken. Please choose a different username."))
                 .andExpect(jsonPath("$.timestamp").exists());
     }
 

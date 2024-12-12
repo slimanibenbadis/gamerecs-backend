@@ -24,7 +24,7 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse(
             HttpStatus.CONFLICT.value(),
             "Registration Error",
-            "Unable to complete registration"
+            ex.getMessage()
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }

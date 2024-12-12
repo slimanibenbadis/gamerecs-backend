@@ -1,8 +1,12 @@
 package com.gamerecs.gamerecs_backend.service;
 
+import com.gamerecs.gamerecs_backend.dto.UserProfileDTO;
+import com.gamerecs.gamerecs_backend.dto.UserRegistrationDTO;
+import com.gamerecs.gamerecs_backend.exception.UserRegistrationException;
+import com.gamerecs.gamerecs_backend.model.User;
+import com.gamerecs.gamerecs_backend.repository.UserRepository;
 import java.sql.Timestamp;
 import java.util.Collections;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,12 +15,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.gamerecs.gamerecs_backend.dto.UserProfileDTO;
-import com.gamerecs.gamerecs_backend.dto.UserRegistrationDTO;
-import com.gamerecs.gamerecs_backend.exception.UserRegistrationException;
-import com.gamerecs.gamerecs_backend.model.User;
-import com.gamerecs.gamerecs_backend.repository.UserRepository;
 
 /**
  * Service class handling user-related business logic.
@@ -68,12 +66,12 @@ public class UserService implements UserDetailsService {
 
         // Check for existing username
         if (userRepository.existsByUsername(registrationDTO.getUsername())) {
-            throw new UserRegistrationException("Username already exists");
+            throw new UserRegistrationException("The username is already taken. Please choose a different username.");
         }
 
         // Check for existing email
         if (userRepository.existsByEmail(registrationDTO.getEmail())) {
-            throw new UserRegistrationException("Email already exists");
+            throw new UserRegistrationException("This email address is already registered. Please use a different email or try logging in.");
         }
 
         // Create new user entity
