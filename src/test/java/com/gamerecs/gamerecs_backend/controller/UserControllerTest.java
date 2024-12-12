@@ -113,7 +113,7 @@ public class UserControllerTest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.status").value(409))
                 .andExpect(jsonPath("$.error").value("Registration Error"))
-                .andExpect(jsonPath("$.message").value("Username already exists"))
+                .andExpect(jsonPath("$.message").value("Unable to complete registration"))
                 .andExpect(jsonPath("$.timestamp").exists());
     }
 
@@ -186,7 +186,6 @@ public class UserControllerTest {
     @WithMockUser(username = "testuser")
     void getCurrentUserProfile_WithValidToken_ShouldReturn200() throws Exception {
         // Arrange
-        UserDetails userDetails = new User("testuser", "password", Collections.emptyList());
         when(userService.getUserProfile("testuser")).thenReturn(validProfileDTO);
 
         // Act & Assert

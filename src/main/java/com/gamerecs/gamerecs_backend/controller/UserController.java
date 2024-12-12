@@ -55,14 +55,14 @@ public class UserController {
             ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
                 "Validation Error",
-                e.getMessage()
+                "Invalid registration data provided"
             );
             return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
         } catch (RuntimeException e) {
             ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.CONFLICT.value(),
                 "Registration Error",
-                e.getMessage()
+                "Unable to complete registration"
             );
             return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
         }
@@ -117,7 +117,7 @@ public class UserController {
             ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.NOT_FOUND.value(),
                 "Profile Error",
-                "User profile not found"
+                "Unable to retrieve user profile"
             );
             return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }

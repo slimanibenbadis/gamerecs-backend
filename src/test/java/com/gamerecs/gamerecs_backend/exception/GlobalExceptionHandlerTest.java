@@ -33,7 +33,7 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(errorMessage, response.getBody().getMessage());
+        assertEquals("Unable to complete registration", response.getBody().getMessage());
         assertEquals("Registration Error", response.getBody().getError());
         assertEquals(409, response.getBody().getStatus());
     }
@@ -60,7 +60,7 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(errorMessage, response.getBody().getMessage());
+        assertEquals("The requested user could not be found", response.getBody().getMessage());
         assertEquals("User Not Found", response.getBody().getError());
         assertEquals(404, response.getBody().getStatus());
     }
@@ -82,7 +82,7 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals("username: Username is required, email: Invalid email format", 
+        assertEquals("username: Invalid value provided, email: Invalid value provided", 
             response.getBody().getMessage());
         assertEquals("Validation Error", response.getBody().getError());
         assertEquals(400, response.getBody().getStatus());
@@ -96,7 +96,7 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals("An unexpected error occurred. Please try again later.", 
+        assertEquals("An unexpected error occurred", 
             response.getBody().getMessage());
         assertEquals("Internal Server Error", response.getBody().getError());
         assertEquals(500, response.getBody().getStatus());

@@ -1,17 +1,16 @@
 package com.gamerecs.gamerecs_backend.exception;
 
+import java.util.stream.Collectors;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-
-import java.util.stream.Collectors;
 
 /**
  * Global exception handler for the application.
@@ -25,7 +24,7 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse(
             HttpStatus.CONFLICT.value(),
             "Registration Error",
-            ex.getMessage()
+            "Unable to complete registration"
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
@@ -45,7 +44,7 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse(
             HttpStatus.NOT_FOUND.value(),
             "User Not Found",
-            ex.getMessage()
+            "The requested user could not be found"
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
@@ -55,7 +54,7 @@ public class GlobalExceptionHandler {
         String errors = ex.getBindingResult()
             .getFieldErrors()
             .stream()
-            .map(error -> error.getField() + ": " + error.getDefaultMessage())
+            .map(error -> error.getField() + ": Invalid value provided")
             .collect(Collectors.joining(", "));
 
         ErrorResponse errorResponse = new ErrorResponse(
@@ -71,7 +70,7 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse(
             HttpStatus.CONFLICT.value(),
             "Data Conflict",
-            "The requested operation could not be completed due to a conflict with existing data"
+            "The requested operation could not be completed"
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
@@ -81,7 +80,7 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse(
             HttpStatus.BAD_REQUEST.value(),
             "Invalid Request Format",
-            "The request body is invalid or malformed. Please check your input format."
+            "The request format is invalid"
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
@@ -91,7 +90,7 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse(
             HttpStatus.INTERNAL_SERVER_ERROR.value(),
             "Internal Server Error",
-            "An unexpected error occurred. Please try again later."
+            "An unexpected error occurred"
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
