@@ -1,5 +1,18 @@
 package com.gamerecs.gamerecs_backend.controller;
 
+import com.gamerecs.gamerecs_backend.dto.AuthenticationResponse;
+import com.gamerecs.gamerecs_backend.dto.LoginDTO;
+import com.gamerecs.gamerecs_backend.dto.UserProfileDTO;
+import com.gamerecs.gamerecs_backend.dto.UserRegistrationDTO;
+import com.gamerecs.gamerecs_backend.exception.ErrorResponse;
+import com.gamerecs.gamerecs_backend.security.JwtService;
+import com.gamerecs.gamerecs_backend.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,25 +22,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.gamerecs.gamerecs_backend.dto.AuthenticationResponse;
-import com.gamerecs.gamerecs_backend.dto.LoginDTO;
-import com.gamerecs.gamerecs_backend.dto.UserProfileDTO;
-import com.gamerecs.gamerecs_backend.dto.UserRegistrationDTO;
-import com.gamerecs.gamerecs_backend.security.JwtService;
-import com.gamerecs.gamerecs_backend.service.UserService;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/users")
@@ -57,9 +52,19 @@ public class UserController {
             var registeredUser = userService.registerUser(registrationDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(registeredUser);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Validation Error",
+                e.getMessage()
+            );
+            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("User registration failed: " + e.getMessage());
+            ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.CONFLICT.value(),
+                "Registration Error",
+                e.getMessage()
+            );
+            return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
         }
     }
 
@@ -87,9 +92,12 @@ public class UserController {
                     .header("Authorization", "Bearer " + jwt)
                     .body(response);
         } catch (AuthenticationException e) {
-            return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .body("Invalid username or password");
+            ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.UNAUTHORIZED.value(),
+                "Authentication Error",
+                "Invalid username or password"
+            );
+            return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
         }
     }
 
@@ -106,7 +114,12 @@ public class UserController {
             UserProfileDTO profile = userService.getUserProfile(userDetails.getUsername());
             return ResponseEntity.ok(profile);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User profile not found");
+            ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                "Profile Error",
+                "User profile not found"
+            );
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }
     }
 }
