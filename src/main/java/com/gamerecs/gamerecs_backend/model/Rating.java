@@ -12,6 +12,7 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -51,6 +52,7 @@ public class Rating {
     private Integer percentileRank;
 
     @NotNull(message = "Date updated is required")
+    @PastOrPresent(message = "Date updated cannot be in the future")
     @Column(name = "DateUpdated", nullable = false)
     private LocalDateTime dateUpdated;
 

@@ -8,6 +8,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import java.util.List;
@@ -33,20 +35,25 @@ public class Game {
     @Column(name = "Title", nullable = false)
     private String title;
 
+    @NotEmpty(message = "At least one genre must be specified")
     @ElementCollection
     @Column(name = "Genres")
     private List<String> genres;
 
+    @NotEmpty(message = "At least one platform must be specified")
     @ElementCollection
     @Column(name = "Platforms")
     private List<String> platforms;
 
+    @PastOrPresent(message = "Release date cannot be in the future")
     @Column(name = "ReleaseDate")
     private LocalDate releaseDate;
 
+    @Size(max = 10000, message = "Description cannot exceed 10000 characters")
     @Column(name = "Description", columnDefinition = "TEXT")
     private String description;
 
+    @Size(max = 500, message = "Cover image URL cannot exceed 500 characters")
     @Column(name = "CoverImageURL", columnDefinition = "TEXT")
     private String coverImageURL;
 

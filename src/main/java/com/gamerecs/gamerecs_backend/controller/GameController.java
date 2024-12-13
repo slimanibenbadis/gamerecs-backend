@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -42,7 +43,8 @@ public class GameController {
     })
     @GetMapping("/{id}")
     public ResponseEntity<?> getGameById(
-            @PathVariable @Parameter(description = "ID of the game to retrieve") Long id) {
+            @PathVariable @Parameter(description = "ID of the game to retrieve") 
+            @Min(value = 1, message = "Game ID must be positive") Long id) {
         try {
             Optional<Game> gameOpt = gameService.findById(id);
             if (gameOpt.isPresent()) {
