@@ -1,4 +1,4 @@
-package com.gamerecs.repository;
+package com.gamerecs.gamerecs_backend.repository;
 
 import com.gamerecs.gamerecs_backend.model.Game;
 import java.util.Optional;
