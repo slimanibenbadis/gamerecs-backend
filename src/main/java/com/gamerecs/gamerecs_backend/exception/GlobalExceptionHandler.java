@@ -23,6 +23,16 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(BacklogException.class)
+    public ResponseEntity<ErrorResponse> handleBacklogException(BacklogException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(
+            HttpStatus.BAD_REQUEST.value(),
+            "Backlog Error",
+            ex.getMessage()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(UserRegistrationException.class)
     public ResponseEntity<ErrorResponse> handleUserRegistrationException(UserRegistrationException ex) {
         ErrorResponse errorResponse = new ErrorResponse(
