@@ -30,7 +30,7 @@
 		<java.version>17</java.version>
 		<org.mapstruct.version>1.5.5.Final</org.mapstruct.version>
 		<org.projectlombok.version>1.18.34</org.projectlombok.version>
-		<springdoc-openapi.version>2.6.0</springdoc-openapi.version>
+		<springdoc-openapi.version>2.7.0</springdoc-openapi.version>
 		<resilience4j.version>2.2.0</resilience4j.version>
 	</properties>
 	<dependencies>
