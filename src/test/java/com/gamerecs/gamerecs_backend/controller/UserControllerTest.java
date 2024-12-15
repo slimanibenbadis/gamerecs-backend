@@ -197,10 +197,10 @@ public class UserControllerTest {
     }
 
     @Test
-    @DisplayName("Should return 403 when accessing profile without authentication")
-    void getCurrentUserProfile_WithoutAuth_ShouldReturn403() throws Exception {
+    @DisplayName("Should return 401 when accessing profile without authentication")
+    void getCurrentUserProfile_WithoutAuth_ShouldReturn401() throws Exception {
         mockMvc.perform(get("/users/profile"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
