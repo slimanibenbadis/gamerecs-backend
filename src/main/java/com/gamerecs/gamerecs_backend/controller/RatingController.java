@@ -4,6 +4,7 @@ import com.gamerecs.gamerecs_backend.exception.ErrorResponse;
 import com.gamerecs.gamerecs_backend.model.Game;
 import com.gamerecs.gamerecs_backend.model.Rating;
 import com.gamerecs.gamerecs_backend.model.User;
+import com.gamerecs.gamerecs_backend.security.UserDetailsImpl;
 import com.gamerecs.gamerecs_backend.service.GameService;
 import com.gamerecs.gamerecs_backend.service.RatingService;
 import com.gamerecs.gamerecs_backend.service.UserService;
@@ -67,7 +68,7 @@ public class RatingController {
             @Max(value = 100, message = "Rating must not exceed 100") Integer ratingValue) {
         
         try {
-            User user = (User) userDetails;
+            User user = ((UserDetailsImpl) userDetails).getUser();
             Game game = gameService.findById(gameId)
                     .orElseThrow(() -> new IllegalArgumentException("Game with ID " + gameId + " not found"));
 
@@ -153,7 +154,8 @@ public class RatingController {
             @Parameter(description = "Pagination parameters (page, size, sort)") Pageable pageable) {
         
         try {
-            User user = (User) userService.loadUserByUsername(username);
+            UserDetailsImpl userDetailsImpl = (UserDetailsImpl) userService.loadUserByUsername(username);
+            User user = userDetailsImpl.getUser();
             Page<Rating> ratings = ratingService.getUserRatings(user, pageable);
             return ResponseEntity.ok(ratings);
         } catch (UsernameNotFoundException e) {
@@ -185,7 +187,7 @@ public class RatingController {
             @PathVariable @Parameter(description = "ID of the game to get rating for") Long gameId) {
         
         try {
-            User user = (User) userDetails;
+            User user = ((UserDetailsImpl) userDetails).getUser();
             Game game = gameService.findById(gameId)
                     .orElseThrow(() -> new IllegalArgumentException("Game with ID " + gameId + " not found"));
             
@@ -218,7 +220,7 @@ public class RatingController {
             @PathVariable @Parameter(description = "ID of the game to delete rating for") Long gameId) {
         
         try {
-            User user = (User) userDetails;
+            User user = ((UserDetailsImpl) userDetails).getUser();
             Game game = gameService.findById(gameId)
                     .orElseThrow(() -> new IllegalArgumentException("Game with ID " + gameId + " not found"));
             
