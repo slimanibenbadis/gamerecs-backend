@@ -16,9 +16,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -83,7 +85,15 @@ class GameControllerTest {
                 .totalRatings(100L)
                 .build();
 
-        UserDetails userDetails = new User("testuser", "password", Collections.emptyList());
+        // Create user with proper authorities
+        List<SimpleGrantedAuthority> authorities = Collections.singletonList(
+            new SimpleGrantedAuthority("ROLE_USER")
+        );
+        UserDetails userDetails = User.builder()
+            .username("testuser")
+            .password("password")
+            .authorities(authorities)
+            .build();
         jwtToken = jwtService.generateToken(userDetails);
     }
 
@@ -179,6 +189,7 @@ class GameControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "USER")
     void addGame_ValidGame_ReturnsCreatedGame() throws Exception {
         when(gameService.addGame(any(Game.class))).thenReturn(testGame);
         when(ratingService.getAverageRating(1L)).thenReturn(85.0);
@@ -194,6 +205,7 @@ class GameControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "USER")
     void addGame_DuplicateGame_ReturnsConflict() throws Exception {
         when(gameService.addGame(any(Game.class)))
                 .thenThrow(new IllegalArgumentException("Game already exists"));
