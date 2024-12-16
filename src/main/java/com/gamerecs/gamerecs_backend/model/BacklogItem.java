@@ -43,7 +43,10 @@ public class BacklogItem {
 
     @NotNull(message = "Game is required")
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "GameID", nullable = false)
+    @JoinColumn(name = "GameID", nullable = false, foreignKey = @jakarta.persistence.ForeignKey(
+        name = "fk_backlog_game",
+        foreignKeyDefinition = "FOREIGN KEY (GameID) REFERENCES Game(GameID) ON DELETE CASCADE"
+    ))
     private Game game;
 
     @NotNull(message = "Status is required")

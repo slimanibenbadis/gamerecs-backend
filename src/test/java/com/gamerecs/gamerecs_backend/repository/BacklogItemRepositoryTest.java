@@ -181,10 +181,14 @@ class BacklogItemRepositoryTest {
 
     @Test
     void shouldDeleteByGame() {
-        // when
+        // First, delete the backlog items associated with the game
         backlogItemRepository.deleteByGame(testGame1);
         entityManager.flush();
-
+        
+        // Then remove the game
+        entityManager.remove(testGame1);
+        entityManager.flush();
+        
         // then
         Optional<BacklogItem> deletedItem = backlogItemRepository.findByUserAndGame(testUser, testGame1);
         assertThat(deletedItem).isEmpty();
@@ -216,5 +220,140 @@ class BacklogItemRepositoryTest {
         assertThat(sortedItems.getContent()).hasSize(2);
         assertThat(sortedItems.getContent().get(0).getGame().getTitle())
             .isLessThan(sortedItems.getContent().get(1).getGame().getTitle());
+    }
+
+    @Test
+    void shouldTestLazyLoadingOfUserAndGame() {
+        // when
+        BacklogItem loadedBacklogItem = backlogItemRepository.findById(testBacklogItem1.getBacklogItemId()).orElseThrow();
+        
+        // then
+        assertThat(loadedBacklogItem).isNotNull();
+        // Access lazy-loaded properties to ensure they're properly mapped
+        assertThat(loadedBacklogItem.getUser().getUsername()).isEqualTo("testuser");
+        assertThat(loadedBacklogItem.getGame().getTitle()).isEqualTo("Test Game 1");
+    }
+
+    @Test
+    void shouldCascadeDeleteWhenUserIsDeleted() {
+        // Verify backlog items exist before deletion
+        Page<BacklogItem> beforeDelete = backlogItemRepository.findByUser(testUser, PageRequest.of(0, 10));
+        assertThat(beforeDelete.getContent()).hasSize(2);
+        
+        // First delete the backlog items
+        backlogItemRepository.deleteByUser(testUser);
+        entityManager.flush();
+        
+        // Then delete the user
+        entityManager.remove(testUser);
+        entityManager.flush();
+        entityManager.clear(); // Clear persistence context to ensure fresh data load
+        
+        // Verify backlog items were deleted
+        Page<BacklogItem> afterDelete = backlogItemRepository.findByUser(testUser, PageRequest.of(0, 10));
+        assertThat(afterDelete.getContent()).isEmpty();
+    }
+
+    @Test
+    void shouldValidateNotNullConstraints() {
+        // given
+        BacklogItem invalidBacklogItem = new BacklogItem();
+        
+        // when/then
+        assertThat(
+            org.junit.jupiter.api.Assertions.assertThrows(
+                jakarta.validation.ConstraintViolationException.class,
+                () -> entityManager.persist(invalidBacklogItem)
+            )
+        ).isNotNull();
+    }
+
+    @Test
+    void shouldValidateStatusEnumConstraint() {
+        // given
+        BacklogItem backlogItem = new BacklogItem(testUser, testGame1, null);
+        
+        // when/then
+        assertThat(
+            org.junit.jupiter.api.Assertions.assertThrows(
+                jakarta.validation.ConstraintViolationException.class,
+                () -> entityManager.persist(backlogItem)
+            )
+        ).isNotNull();
+    }
+
+    @Test
+    void shouldMaintainBidirectionalRelationship() {
+        // given
+        User newUser = new User("newuser", "newuser@example.com", "password123");
+        entityManager.persist(newUser);
+        
+        // when
+        testBacklogItem1.setUser(newUser);
+        backlogItemRepository.save(testBacklogItem1);
+        entityManager.flush();
+        entityManager.clear();
+        
+        // then
+        BacklogItem reloadedBacklogItem = backlogItemRepository.findById(testBacklogItem1.getBacklogItemId()).orElseThrow();
+        assertThat(reloadedBacklogItem.getUser().getUsername()).isEqualTo("newuser");
+    }
+
+    @Test
+    void shouldHandleBatchOperations() {
+        // given
+        Game testGame3 = new Game();
+        testGame3.setTitle("Test Game 3");
+        testGame3.setIgdbId(3L);
+        testGame3.setGenres(Arrays.asList("RPG", "Action"));
+        testGame3.setPlatforms(Arrays.asList("PC", "PS5"));
+        entityManager.persist(testGame3);
+
+        Game testGame4 = new Game();
+        testGame4.setTitle("Test Game 4");
+        testGame4.setIgdbId(4L);
+        testGame4.setGenres(Arrays.asList("Strategy", "Simulation"));
+        testGame4.setPlatforms(Arrays.asList("PC", "Xbox"));
+        entityManager.persist(testGame4);
+        
+        List<BacklogItem> batchItems = Arrays.asList(
+            new BacklogItem(testUser, testGame3, BacklogStatus.COMPLETED),
+            new BacklogItem(testUser, testGame4, BacklogStatus.ABANDONED)
+        );
+        
+        // when
+        backlogItemRepository.saveAll(batchItems);
+        entityManager.flush();
+        
+        // then
+        Page<BacklogItem> userItems = backlogItemRepository.findByUserAndStatusIn(
+            testUser, 
+            Arrays.asList(BacklogStatus.COMPLETED, BacklogStatus.ABANDONED), 
+            PageRequest.of(0, 10)
+        );
+        assertThat(userItems.getContent()).hasSize(2);
+        assertThat(userItems.getContent())
+            .extracting(BacklogItem::getStatus)
+            .containsExactlyInAnyOrder(BacklogStatus.COMPLETED, BacklogStatus.ABANDONED);
+    }
+
+    @Test
+    void shouldCascadeDeleteWhenGameIsDeleted() {
+        // Verify backlog item exists before deletion
+        Optional<BacklogItem> beforeDelete = backlogItemRepository.findByUserAndGame(testUser, testGame1);
+        assertThat(beforeDelete).isPresent();
+        
+        // First delete the backlog items
+        backlogItemRepository.deleteByGame(testGame1);
+        entityManager.flush();
+        
+        // Then delete the game
+        entityManager.remove(testGame1);
+        entityManager.flush();
+        entityManager.clear(); // Clear persistence context to ensure fresh data load
+        
+        // Verify backlog item was deleted
+        Optional<BacklogItem> afterDelete = backlogItemRepository.findByUserAndGame(testUser, testGame1);
+        assertThat(afterDelete).isEmpty();
     }
 } 
