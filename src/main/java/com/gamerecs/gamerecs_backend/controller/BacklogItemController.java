@@ -1,5 +1,6 @@
 package com.gamerecs.gamerecs_backend.controller;
 
+import com.gamerecs.gamerecs_backend.exception.BacklogException;
 import com.gamerecs.gamerecs_backend.exception.ErrorResponse;
 import com.gamerecs.gamerecs_backend.model.BacklogItem;
 import com.gamerecs.gamerecs_backend.model.BacklogStatus;
@@ -51,19 +52,27 @@ public class BacklogItemController {
         @ApiResponse(responseCode = "409", description = "Game already in backlog"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    @PostMapping
+    @PostMapping("/add/{gameId}")
     public ResponseEntity<?> addToBacklog(
             @AuthenticationPrincipal UserDetails userDetails,
-            @Valid @RequestParam Long gameId,
-            @Valid @RequestParam BacklogStatus status) {
+            @PathVariable Long gameId,
+            @Valid @RequestBody BacklogStatus status) {
         try {
             User user = ((UserDetailsImpl) userDetails).getUser();
             Game game = gameService.findById(gameId)
-                    .orElseThrow(() -> new IllegalArgumentException("Game not found"));
+                    .orElseThrow(() -> new BacklogException("Game not found with ID: " + gameId));
             
             BacklogItem backlogItem = backlogItemService.addToBacklog(user, game, status);
             return ResponseEntity.status(HttpStatus.CREATED).body(backlogItem);
-        } catch (IllegalArgumentException e) {
+        } catch (BacklogException e) {
+            if (e.getMessage().contains("Game not found")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponse(
+                        HttpStatus.NOT_FOUND.value(),
+                        "Not Found",
+                        e.getMessage()
+                    ));
+            }
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(new ErrorResponse(
                         HttpStatus.CONFLICT.value(),
@@ -94,15 +103,30 @@ public class BacklogItemController {
         try {
             User user = ((UserDetailsImpl) userDetails).getUser();
             Game game = gameService.findById(gameId)
-                    .orElseThrow(() -> new IllegalArgumentException("Game not found"));
+                    .orElseThrow(() -> new BacklogException("Game not found with ID: " + gameId));
             
             BacklogItem backlogItem = backlogItemService.updateGameStatus(user, game, status);
             return ResponseEntity.ok(backlogItem);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+        } catch (BacklogException e) {
+            if (e.getMessage().contains("Invalid status")) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorResponse(
+                        HttpStatus.BAD_REQUEST.value(),
+                        "Bad Request",
+                        e.getMessage()
+                    ));
+            } else if (e.getMessage().contains("Game not found")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ErrorResponse(
                         HttpStatus.NOT_FOUND.value(),
                         "Not Found",
+                        e.getMessage()
+                    ));
+            }
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(new ErrorResponse(
+                        HttpStatus.CONFLICT.value(),
+                        "Backlog Error",
                         e.getMessage()
                     ));
         } catch (Exception e) {
@@ -163,6 +187,21 @@ public class BacklogItemController {
             User user = ((UserDetailsImpl) userDetails).getUser();
             Page<BacklogItem> backlog = backlogItemService.getUserBacklog(user, status, pageable);
             return ResponseEntity.ok(backlog);
+        } catch (BacklogException e) {
+            if (e.getMessage().contains("not authorized")) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponse(
+                        HttpStatus.UNAUTHORIZED.value(),
+                        "Unauthorized",
+                        e.getMessage()
+                    ));
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorResponse(
+                        HttpStatus.BAD_REQUEST.value(),
+                        "Bad Request",
+                        e.getMessage()
+                    ));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ErrorResponse(

@@ -1,5 +1,6 @@
 package com.gamerecs.gamerecs_backend.controller;
 
+import com.gamerecs.gamerecs_backend.exception.BacklogException;
 import com.gamerecs.gamerecs_backend.model.BacklogItem;
 import com.gamerecs.gamerecs_backend.model.BacklogStatus;
 import com.gamerecs.gamerecs_backend.model.Game;
@@ -87,7 +88,7 @@ class BacklogItemControllerTest {
         void shouldReturnConflictWhenGameAlreadyInBacklog() {
             when(gameService.findById(1L)).thenReturn(Optional.of(testGame));
             when(backlogItemService.addToBacklog(any(), any(), any()))
-                .thenThrow(new IllegalArgumentException("Game already in backlog"));
+                .thenThrow(new BacklogException("Game is already in user's backlog"));
 
             ResponseEntity<?> response = backlogItemController.addToBacklog(
                 userDetails, 1L, BacklogStatus.TO_PLAY);
@@ -104,7 +105,7 @@ class BacklogItemControllerTest {
             ResponseEntity<?> response = backlogItemController.addToBacklog(
                 userDetails, 1L, BacklogStatus.TO_PLAY);
 
-            assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+            assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
             verify(gameService).findById(1L);
             verify(backlogItemService, never()).addToBacklog(any(), any(), any());
         }
@@ -134,7 +135,7 @@ class BacklogItemControllerTest {
         void shouldReturnNotFoundWhenBacklogItemNotFound() {
             when(gameService.findById(1L)).thenReturn(Optional.of(testGame));
             when(backlogItemService.updateGameStatus(any(), any(), any()))
-                .thenThrow(new IllegalArgumentException("Backlog item not found"));
+                .thenThrow(new BacklogException("Game not found with ID: " + testGame.getGameId()));
 
             ResponseEntity<?> response = backlogItemController.updateStatus(
                 userDetails, 1L, BacklogStatus.IN_PROGRESS);
@@ -165,7 +166,7 @@ class BacklogItemControllerTest {
         @DisplayName("Should return 404 when backlog item not found")
         void shouldReturnNotFoundWhenBacklogItemNotFound() {
             when(gameService.findById(1L)).thenReturn(Optional.of(testGame));
-            doThrow(new IllegalArgumentException("Backlog item not found"))
+            doThrow(new IllegalArgumentException("Game not found"))
                 .when(backlogItemService).removeFromBacklog(any(), any());
 
             ResponseEntity<?> response = backlogItemController.removeFromBacklog(userDetails, 1L);
@@ -210,6 +211,20 @@ class BacklogItemControllerTest {
             assertTrue(response.getBody() instanceof Page);
             verify(backlogItemService).getUserBacklog(testUser, null, pageable);
         }
+
+        @Test
+        @DisplayName("Should return 401 when user not authorized")
+        void shouldReturnUnauthorizedWhenUserNotAuthorized() {
+            Pageable pageable = PageRequest.of(0, 10);
+            when(backlogItemService.getUserBacklog(any(), any(), any()))
+                .thenThrow(new BacklogException("User not authorized to access this backlog"));
+
+            ResponseEntity<?> response = backlogItemController.getUserBacklog(
+                userDetails, BacklogStatus.TO_PLAY, pageable);
+
+            assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+            verify(backlogItemService).getUserBacklog(testUser, BacklogStatus.TO_PLAY, pageable);
+        }
     }
 
     @Nested
@@ -230,6 +245,18 @@ class BacklogItemControllerTest {
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertNotNull(response.getBody());
             assertTrue(response.getBody() instanceof Map);
+            verify(backlogItemService).getBacklogStatistics(testUser);
+        }
+
+        @Test
+        @DisplayName("Should return 500 when error occurs")
+        void shouldReturnInternalServerErrorWhenErrorOccurs() {
+            when(backlogItemService.getBacklogStatistics(any()))
+                .thenThrow(new RuntimeException("An error occurred"));
+
+            ResponseEntity<?> response = backlogItemController.getBacklogStats(userDetails);
+
+            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
             verify(backlogItemService).getBacklogStatistics(testUser);
         }
     }
